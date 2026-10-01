@@ -273,13 +273,6 @@ gst_omx_h264_enc_class_init (GstOMXH264EncClass * klass)
   basevideoenc_class->flush = gst_omx_h264_enc_flush;
   basevideoenc_class->stop = gst_omx_h264_enc_stop;
 
-#if defined(USE_OMX_TARGET_ZYNQ_USCALE_PLUS) || defined(USE_OMX_TARGET_VERSAL_GEN2)
-  videoenc_class->cdata.default_sink_template_caps =
-      GST_VIDEO_CAPS_MAKE_WITH_FEATURES (GST_CAPS_FEATURE_MEMORY_XLNX_LL,
-      GST_OMX_VIDEO_ENC_SUPPORTED_FORMATS) " ; "
-      GST_VIDEO_CAPS_MAKE (GST_OMX_VIDEO_ENC_SUPPORTED_FORMATS);
-#endif
-
   videoenc_class->cdata.default_src_template_caps = "video/x-h264, "
 #if defined(USE_OMX_TARGET_VERSAL_GEN2)
       "width = (int) [ 128, 8192 ], height = (int) [ 96, 8192 ], "

@@ -2573,16 +2573,12 @@ get_chroma_info_from_input (GstOMXVideoEnc * self, const gchar ** chroma_format,
 {
   switch (self->input_state->info.finfo->format) {
     case GST_VIDEO_FORMAT_GRAY8:
-    case GST_VIDEO_FORMAT_T5M8:
-    case GST_VIDEO_FORMAT_T6M8:
       *chroma_format = "4:0:0";
       *bit_depth_luma = 8;
       *bit_depth_chroma = 0;
       break;
     case GST_VIDEO_FORMAT_I420:
     case GST_VIDEO_FORMAT_NV12:
-    case GST_VIDEO_FORMAT_T508:
-    case GST_VIDEO_FORMAT_T608:
       *chroma_format = "4:2:0";
       *bit_depth_luma = *bit_depth_chroma = 8;
       break;
@@ -2590,47 +2586,28 @@ get_chroma_info_from_input (GstOMXVideoEnc * self, const gchar ** chroma_format,
     case GST_VIDEO_FORMAT_YUY2:
     case GST_VIDEO_FORMAT_YVYU:
     case GST_VIDEO_FORMAT_UYVY:
-    case GST_VIDEO_FORMAT_T528:
-    case GST_VIDEO_FORMAT_T628:
       *chroma_format = "4:2:2";
       *bit_depth_luma = *bit_depth_chroma = 8;
       break;
     case GST_VIDEO_FORMAT_GRAY10_LE32:
-    case GST_VIDEO_FORMAT_T5MA:
-    case GST_VIDEO_FORMAT_T6MA:
       *chroma_format = "4:0:0";
       *bit_depth_luma = 10;
       *bit_depth_chroma = 0;
       break;
     case GST_VIDEO_FORMAT_NV12_10LE32:
-    case GST_VIDEO_FORMAT_T50A:
-    case GST_VIDEO_FORMAT_T60A:
       *chroma_format = "4:2:0";
       *bit_depth_luma = *bit_depth_chroma = 10;
       break;
     case GST_VIDEO_FORMAT_P012_LE:
-    case GST_VIDEO_FORMAT_T50C:
-    case GST_VIDEO_FORMAT_T60C:
       *chroma_format = "4:2:0";
       *bit_depth_luma = *bit_depth_chroma = 12;
       break;
     case GST_VIDEO_FORMAT_NV16_10LE32:
-    case GST_VIDEO_FORMAT_P210_10LE:
-    case GST_VIDEO_FORMAT_T52A:
-    case GST_VIDEO_FORMAT_T62A:
       *chroma_format = "4:2:2";
       *bit_depth_luma = *bit_depth_chroma = 10;
       break;
-    case GST_VIDEO_FORMAT_P212_12LE:
-    case GST_VIDEO_FORMAT_T52C:
-    case GST_VIDEO_FORMAT_T62C:
-      *chroma_format = "4:2:2";
-      *bit_depth_luma = *bit_depth_chroma = 12;
-      break;
     case GST_VIDEO_FORMAT_Y444:
 #if defined(USE_OMX_TARGET_VERSAL_GEN2)
-    case GST_VIDEO_FORMAT_T548:
-    case GST_VIDEO_FORMAT_T648:
       *chroma_format = "4:4:4";
       *bit_depth_luma = 8;
       *bit_depth_chroma = 8;
@@ -2640,37 +2617,16 @@ get_chroma_info_from_input (GstOMXVideoEnc * self, const gchar ** chroma_format,
       *bit_depth_chroma = 0;
 #endif
       break;
-    case GST_VIDEO_FORMAT_Y444_10LE32:
-      *chroma_format = "4:0:0";
-      *bit_depth_luma = 10;
-      *bit_depth_chroma = 0;
-      break;
 #if defined(USE_OMX_TARGET_VERSAL_GEN2)
     case GST_VIDEO_FORMAT_Y444_10LE:
-    case GST_VIDEO_FORMAT_T54A:
-    case GST_VIDEO_FORMAT_T64A:
       *chroma_format = "4:4:4";
       *bit_depth_luma = 10;
       *bit_depth_chroma = 10;
       break;
     case GST_VIDEO_FORMAT_Y444_12LE:
-    case GST_VIDEO_FORMAT_T54C:
-    case GST_VIDEO_FORMAT_T64C:
       *chroma_format = "4:4:4";
       *bit_depth_luma = 12;
       *bit_depth_chroma = 12;
-      break;
-    case GST_VIDEO_FORMAT_GRAY10_LE:
-      *chroma_format = "4:0:0";
-      *bit_depth_luma = 10;
-      *bit_depth_chroma = 0;
-      break;
-    case GST_VIDEO_FORMAT_GRAY12_LE:
-    case GST_VIDEO_FORMAT_T5MC:
-    case GST_VIDEO_FORMAT_T6MC:
-      *chroma_format = "4:0:0";
-      *bit_depth_luma = 12;
-      *bit_depth_chroma = 0;
       break;
     case GST_VIDEO_FORMAT_P010_10LE:
       *chroma_format = "4:2:0";
@@ -4293,21 +4249,9 @@ gst_omx_video_enc_set_format (GstVideoEncoder * encoder,
         port_def.format.video.eColorFormat = OMX_COLOR_FormatYUV420Planar;
         break;
       case GST_VIDEO_FORMAT_NV12:
-      case GST_VIDEO_FORMAT_T508:
-      case GST_VIDEO_FORMAT_T50A:
-      case GST_VIDEO_FORMAT_T50C:
-      case GST_VIDEO_FORMAT_T608:
-      case GST_VIDEO_FORMAT_T60A:
-      case GST_VIDEO_FORMAT_T60C:
         port_def.format.video.eColorFormat = OMX_COLOR_FormatYUV420SemiPlanar;
         break;
       case GST_VIDEO_FORMAT_NV16:
-      case GST_VIDEO_FORMAT_T528:
-      case GST_VIDEO_FORMAT_T52A:
-      case GST_VIDEO_FORMAT_T52C:
-      case GST_VIDEO_FORMAT_T628:
-      case GST_VIDEO_FORMAT_T62A:
-      case GST_VIDEO_FORMAT_T62C:
         port_def.format.video.eColorFormat = OMX_COLOR_FormatYUV422SemiPlanar;
         break;
       case GST_VIDEO_FORMAT_ABGR:
@@ -4317,18 +4261,10 @@ gst_omx_video_enc_set_format (GstVideoEncoder * encoder,
         port_def.format.video.eColorFormat = OMX_COLOR_Format32bitBGRA8888;
         break;
       case GST_VIDEO_FORMAT_GRAY8:
-      case GST_VIDEO_FORMAT_T5M8:
-      case GST_VIDEO_FORMAT_T5MA:
-      case GST_VIDEO_FORMAT_T5MC:
-      case GST_VIDEO_FORMAT_T6M8:
-      case GST_VIDEO_FORMAT_T6MA:
-      case GST_VIDEO_FORMAT_T6MC:
         port_def.format.video.eColorFormat = OMX_COLOR_FormatL8;
         break;
       case GST_VIDEO_FORMAT_Y444:
 #if defined(USE_OMX_TARGET_VERSAL_GEN2)
-      case GST_VIDEO_FORMAT_T548:
-      case GST_VIDEO_FORMAT_T648:
         port_def.format.video.eColorFormat = OMX_ALG_COLOR_FormatYUV444Planar8bit;
 #else
         port_def.format.video.eColorFormat = OMX_COLOR_FormatL8;
@@ -4336,38 +4272,19 @@ gst_omx_video_enc_set_format (GstVideoEncoder * encoder,
         break;
 #if defined(USE_OMX_TARGET_VERSAL_GEN2)
       case GST_VIDEO_FORMAT_Y444_10LE:
-      case GST_VIDEO_FORMAT_T54A:
-      case GST_VIDEO_FORMAT_T64A:
         port_def.format.video.eColorFormat = OMX_ALG_COLOR_FormatYUV444Planar10bit;
         break;
       case GST_VIDEO_FORMAT_Y444_12LE:
-      case GST_VIDEO_FORMAT_T54C:
-      case GST_VIDEO_FORMAT_T64C:
         port_def.format.video.eColorFormat = OMX_ALG_COLOR_FormatYUV444Planar12bit;
-        break;
-      case GST_VIDEO_FORMAT_GRAY10_LE:
-        port_def.format.video.eColorFormat = OMX_ALG_COLOR_FormatL10bit;
-        break;
-      case GST_VIDEO_FORMAT_GRAY12_LE:
-        port_def.format.video.eColorFormat = OMX_ALG_COLOR_FormatL12bit;
         break;
       case GST_VIDEO_FORMAT_P012_LE:
         port_def.format.video.eColorFormat = OMX_ALG_COLOR_FormatYUV420SemiPlanar12bit;
         break;
 #endif
-      case GST_VIDEO_FORMAT_Y444_10LE32:
-        port_def.format.video.eColorFormat = OMX_COLOR_FormatL8;
-        break;
       case GST_VIDEO_FORMAT_P010_10LE:
         port_def.format.video.eColorFormat = OMX_COLOR_FormatYUV420SemiPlanar;
         break;
 #if defined(USE_OMX_TARGET_VERSAL_GEN2)
-      case GST_VIDEO_FORMAT_P210_10LE:
-        port_def.format.video.eColorFormat = OMX_ALG_COLOR_FormatYUV422SemiPlanar10bit;
-        break;
-      case GST_VIDEO_FORMAT_P212_12LE:
-        port_def.format.video.eColorFormat = OMX_ALG_COLOR_FormatYUV422SemiPlanar12bit;
-        break;
 #endif
       default:
         GST_ERROR_OBJECT (self, "Unsupported format %s",
@@ -4382,8 +4299,6 @@ gst_omx_video_enc_set_format (GstVideoEncoder * encoder,
       if (self->is_yuv444 == 1) {
         if (m->format == GST_VIDEO_FORMAT_GRAY8)
           m->format = GST_VIDEO_FORMAT_Y444;
-        else if (m->format == GST_VIDEO_FORMAT_GRAY10_LE32)
-          m->format = GST_VIDEO_FORMAT_Y444_10LE32;
       }
 #endif
 
@@ -4500,18 +4415,6 @@ gst_omx_video_enc_set_format (GstVideoEncoder * encoder,
 
 #if defined(USE_OMX_TARGET_ZYNQ_USCALE_PLUS) || defined(USE_OMX_TARGET_VERSAL_GEN2)
   gst_omx_video_enc_set_latency (self);
-
-  {
-    GstCapsFeatures *features;
-
-    features = gst_caps_get_features (state->caps, 0);
-    if (features
-        && gst_caps_features_contains (features,
-            GST_CAPS_FEATURE_MEMORY_XLNX_LL)) {
-      GST_DEBUG_OBJECT (self, "Input is using XLNX-LowLatency");
-      self->xlnx_ll = TRUE;
-    }
-  }
 #endif
 
   /* If HDR caps are set, enable corresponding SEIs */
@@ -4696,14 +4599,6 @@ gst_omx_video_enc_copy_plane (GstOMXVideoEnc * self, guint i,
   else if (finfo->format == GST_VIDEO_FORMAT_Y444_10LE ||
     finfo->format == GST_VIDEO_FORMAT_Y444_12LE)
     width = 2 * GST_VIDEO_FRAME_COMP_WIDTH (frame, i);
-
-  /* for Allegro tiled formats, src_stride and dest_stride are for 4 lines */
-  if (finfo->format >= GST_VIDEO_FORMAT_T5M8 &&
-      finfo->format <= GST_VIDEO_FORMAT_T64C ) {
-    src_stride *= 4;
-    width = src_stride;
-    height /= 4;
-  }
 
   if (dest + dest_stride * height >
       outbuf->omx_buf->pBuffer + outbuf->omx_buf->nAllocLen) {
@@ -4923,16 +4818,6 @@ gst_omx_video_enc_fill_buffer (GstOMXVideoEnc * self, GstBuffer * inbuf,
       ret = TRUE;
       break;
     }
-    case GST_VIDEO_FORMAT_T5M8:
-    case GST_VIDEO_FORMAT_T5MA:
-    case GST_VIDEO_FORMAT_T5MC:
-    case GST_VIDEO_FORMAT_T6M8:
-    case GST_VIDEO_FORMAT_T6MA:
-    case GST_VIDEO_FORMAT_T6MC:
-      ret =
-          gst_omx_video_enc_semi_planar_manual_copy (self, inbuf, outbuf,
-          info->finfo, FALSE, 1);
-      break;
     case GST_VIDEO_FORMAT_NV12:
     case GST_VIDEO_FORMAT_NV16:
     case GST_VIDEO_FORMAT_NV12_10LE32:
@@ -4943,20 +4828,6 @@ gst_omx_video_enc_fill_buffer (GstOMXVideoEnc * self, GstBuffer * inbuf,
       break;
     case GST_VIDEO_FORMAT_P010_10LE:
     case GST_VIDEO_FORMAT_P012_LE:
-    case GST_VIDEO_FORMAT_P210_10LE:
-    case GST_VIDEO_FORMAT_P212_12LE:
-    case GST_VIDEO_FORMAT_T508:
-    case GST_VIDEO_FORMAT_T50A:
-    case GST_VIDEO_FORMAT_T60A:
-    case GST_VIDEO_FORMAT_T50C:
-    case GST_VIDEO_FORMAT_T608:
-    case GST_VIDEO_FORMAT_T60C:
-    case GST_VIDEO_FORMAT_T528:
-    case GST_VIDEO_FORMAT_T52A:
-    case GST_VIDEO_FORMAT_T52C:
-    case GST_VIDEO_FORMAT_T628:
-    case GST_VIDEO_FORMAT_T62A:
-    case GST_VIDEO_FORMAT_T62C:
       ret =
           gst_omx_video_enc_semi_planar_manual_copy (self, inbuf, outbuf,
           info->finfo, FALSE, 2);
@@ -4965,20 +4836,12 @@ gst_omx_video_enc_fill_buffer (GstOMXVideoEnc * self, GstBuffer * inbuf,
     case GST_VIDEO_FORMAT_Y444:
     case GST_VIDEO_FORMAT_Y444_10LE:
     case GST_VIDEO_FORMAT_Y444_12LE:
-    case GST_VIDEO_FORMAT_T548:
-    case GST_VIDEO_FORMAT_T54A:
-    case GST_VIDEO_FORMAT_T54C:
-    case GST_VIDEO_FORMAT_T648:
-    case GST_VIDEO_FORMAT_T64A:
-    case GST_VIDEO_FORMAT_T64C:
       ret =
           gst_omx_video_enc_semi_planar_manual_copy (self, inbuf, outbuf,
           info->finfo, FALSE, 3);
       break;
 #endif
     case GST_VIDEO_FORMAT_GRAY8:
-    case GST_VIDEO_FORMAT_GRAY10_LE:
-    case GST_VIDEO_FORMAT_GRAY12_LE:
     {
       if (!gst_video_frame_map (&frame, info, inbuf, GST_MAP_READ)) {
         GST_ERROR_OBJECT (self, "Failed to map input buffer");
@@ -5772,7 +5635,6 @@ filter_supported_formats (GList * negotiation_map)
       case GST_VIDEO_FORMAT_NV12_10LE32:
       case GST_VIDEO_FORMAT_NV16_10LE32:
       case GST_VIDEO_FORMAT_GRAY10_LE32:
-      case GST_VIDEO_FORMAT_Y444_10LE32:
 #endif
       case GST_VIDEO_FORMAT_I420:
       case GST_VIDEO_FORMAT_NV12:
@@ -5781,36 +5643,8 @@ filter_supported_formats (GList * negotiation_map)
       case GST_VIDEO_FORMAT_Y444:
       case GST_VIDEO_FORMAT_Y444_10LE:
       case GST_VIDEO_FORMAT_Y444_12LE:
-      case GST_VIDEO_FORMAT_GRAY10_LE:
-      case GST_VIDEO_FORMAT_GRAY12_LE:
       case GST_VIDEO_FORMAT_P010_10LE:
       case GST_VIDEO_FORMAT_P012_LE:
-      case GST_VIDEO_FORMAT_P210_10LE:
-      case GST_VIDEO_FORMAT_P212_12LE:
-      case GST_VIDEO_FORMAT_T5M8:
-      case GST_VIDEO_FORMAT_T5MA:
-      case GST_VIDEO_FORMAT_T5MC:
-      case GST_VIDEO_FORMAT_T6M8:
-      case GST_VIDEO_FORMAT_T6MA:
-      case GST_VIDEO_FORMAT_T6MC:
-      case GST_VIDEO_FORMAT_T508:
-      case GST_VIDEO_FORMAT_T50A:
-      case GST_VIDEO_FORMAT_T60A:
-      case GST_VIDEO_FORMAT_T50C:
-      case GST_VIDEO_FORMAT_T608:
-      case GST_VIDEO_FORMAT_T60C:
-      case GST_VIDEO_FORMAT_T528:
-      case GST_VIDEO_FORMAT_T52A:
-      case GST_VIDEO_FORMAT_T52C:
-      case GST_VIDEO_FORMAT_T628:
-      case GST_VIDEO_FORMAT_T62A:
-      case GST_VIDEO_FORMAT_T62C:
-      case GST_VIDEO_FORMAT_T548:
-      case GST_VIDEO_FORMAT_T54A:
-      case GST_VIDEO_FORMAT_T54C:
-      case GST_VIDEO_FORMAT_T648:
-      case GST_VIDEO_FORMAT_T64A:
-      case GST_VIDEO_FORMAT_T64C:
         cur = g_list_next (cur);
         continue;
       default:
@@ -5889,8 +5723,6 @@ gst_omx_video_enc_getcaps (GstVideoEncoder * encoder, GstCaps * filter)
     if (self->is_yuv444 == 1) {
       if (m->format == GST_VIDEO_FORMAT_GRAY8)
         m->format = GST_VIDEO_FORMAT_Y444;
-      else if (m->format == GST_VIDEO_FORMAT_GRAY10_LE32)
-        m->format = GST_VIDEO_FORMAT_Y444_10LE32;
     }
   }
 #endif
@@ -5901,11 +5733,6 @@ gst_omx_video_enc_getcaps (GstVideoEncoder * encoder, GstCaps * filter)
       (GDestroyNotify) gst_omx_video_negotiation_map_free);
 
   comp_supported_caps = add_interlace_to_caps (self, comp_supported_caps);
-
-#if defined(USE_OMX_TARGET_ZYNQ_USCALE_PLUS) || defined(USE_OMX_TARGET_VERSAL_GEN2)
-  comp_supported_caps =
-      gst_omx_video_add_xlnx_ll_to_caps (comp_supported_caps, TRUE);
-#endif
 
   if (!gst_caps_is_empty (comp_supported_caps)) {
     ret =

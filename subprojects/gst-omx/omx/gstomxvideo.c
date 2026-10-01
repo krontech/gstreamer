@@ -502,37 +502,4 @@ gst_omx_video_port_support_resolution (GstOMXPort * port, guint width,
 
   return TRUE;
 }
-
-#define SYNC_IP_DEV_ENCODER "/dev/xlnxsync0"
-#define SYNC_IP_DEV_DECODER "/dev/xlnxsync1"
-
-static gboolean
-xlnx_ll_supported (gboolean encoder)
-{
-  if (encoder)
-    return g_file_test (SYNC_IP_DEV_ENCODER, G_FILE_TEST_EXISTS);
-  else
-    return TRUE;                /* Not using decoder syncip currently */
-}
-
-GstCaps *
-gst_omx_video_add_xlnx_ll_to_caps (GstCaps * caps, gboolean encoder)
-{
-  GstCaps *xlnx_ll;
-  guint i;
-
-  if (!xlnx_ll_supported (encoder))
-    return caps;
-
-  xlnx_ll = gst_caps_copy (caps);
-  for (i = 0; i < gst_caps_get_size (xlnx_ll); i++) {
-    GstCapsFeatures *features;
-
-    features = gst_caps_get_features (xlnx_ll, i);
-    gst_caps_features_remove (features, GST_CAPS_FEATURE_MEMORY_SYSTEM_MEMORY);
-    gst_caps_features_add (features, GST_CAPS_FEATURE_MEMORY_XLNX_LL);
-  }
-
-  return gst_caps_merge (caps, xlnx_ll);
-}
 #endif

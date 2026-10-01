@@ -1,5 +1,5 @@
 project('gst-omx', 'c',
-  version : '1.22.12',
+  version : '1.29.2',
   meson_version : '>= 0.62',
   default_options : [ 'warning_level=1',
                       'buildtype=debugoptimized' ])
@@ -435,9 +435,9 @@ subdir('docs')
 
 # Set release date
 if gst_version_nano == 0
-  extract_release_date = find_program('scripts/extract-release-date-from-doap-file.py')
-  run_result = run_command(extract_release_date, gst_version, files('gst-omx.doap'), check: true)
-  release_date = run_result.stdout().strip()
+  #extract_release_date = find_program('scripts/extract-release-date-from-doap-file.py')
+  #run_result = run_command(extract_release_date, gst_version, files('gst-omx.doap'), check: true)
+  release_date = '2024-04-29'
   cdata.set_quoted('GST_PACKAGE_RELEASE_DATETIME', release_date)
   message('Package release date: ' + release_date)
 endif

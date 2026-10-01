@@ -383,14 +383,9 @@ gst_omx_video_dec_class_init (GstOMXVideoDecClass * klass)
       "RGBA") "; "
 #endif
 #if defined(USE_OMX_TARGET_ZYNQ_USCALE_PLUS) || defined(USE_OMX_TARGET_VERSAL) || defined(USE_OMX_TARGET_VERSAL_GEN2)
-      GST_VIDEO_CAPS_MAKE_WITH_FEATURES (GST_CAPS_FEATURE_MEMORY_XLNX_LL ","
-      GST_CAPS_FEATURE_FORMAT_INTERLACED, GST_OMX_VIDEO_DEC_SUPPORTED_FORMATS)
-      ", interlace-mode = (string) alternate ; "
       GST_VIDEO_CAPS_MAKE_WITH_FEATURES (GST_CAPS_FEATURE_FORMAT_INTERLACED,
       GST_OMX_VIDEO_DEC_SUPPORTED_FORMATS)
       ", interlace-mode = (string) alternate ; "
-      GST_VIDEO_CAPS_MAKE_WITH_FEATURES (GST_CAPS_FEATURE_MEMORY_XLNX_LL,
-      GST_OMX_VIDEO_DEC_SUPPORTED_FORMATS) "; "
 #endif
       GST_VIDEO_CAPS_MAKE (GST_OMX_VIDEO_DEC_SUPPORTED_FORMATS);
 }
@@ -879,12 +874,6 @@ gst_omx_video_dec_fill_buffer (GstOMXVideoDec * self,
         dst_width[0] = GST_VIDEO_INFO_WIDTH (vinfo) * 2;
         break;
       case GST_VIDEO_FORMAT_GRAY8:
-      case GST_VIDEO_FORMAT_T5M8:
-      case GST_VIDEO_FORMAT_T5MA:
-      case GST_VIDEO_FORMAT_T5MC:
-      case GST_VIDEO_FORMAT_T6M8:
-      case GST_VIDEO_FORMAT_T6MA:
-      case GST_VIDEO_FORMAT_T6MC:
         dst_width[0] = GST_VIDEO_INFO_WIDTH (vinfo);
         break;
       case GST_VIDEO_FORMAT_I420:
@@ -899,12 +888,6 @@ gst_omx_video_dec_fill_buffer (GstOMXVideoDec * self,
         dst_height[2] = GST_VIDEO_INFO_FIELD_HEIGHT (vinfo) / 2;
         break;
       case GST_VIDEO_FORMAT_NV12:
-      case GST_VIDEO_FORMAT_T508:
-      case GST_VIDEO_FORMAT_T50A:
-      case GST_VIDEO_FORMAT_T60A:
-      case GST_VIDEO_FORMAT_T50C:
-      case GST_VIDEO_FORMAT_T608:
-      case GST_VIDEO_FORMAT_T60C:
         dst_width[0] = GST_VIDEO_INFO_WIDTH (vinfo);
         src_stride[1] = nstride;
         src_size[1] = src_stride[1] * nslice / 2;
@@ -912,12 +895,6 @@ gst_omx_video_dec_fill_buffer (GstOMXVideoDec * self,
         dst_height[1] = GST_VIDEO_INFO_FIELD_HEIGHT (vinfo) / 2;
         break;
       case GST_VIDEO_FORMAT_NV16:
-      case GST_VIDEO_FORMAT_T528:
-      case GST_VIDEO_FORMAT_T52A:
-      case GST_VIDEO_FORMAT_T52C:
-      case GST_VIDEO_FORMAT_T628:
-      case GST_VIDEO_FORMAT_T62A:
-      case GST_VIDEO_FORMAT_T62C:
         dst_width[0] = GST_VIDEO_INFO_WIDTH (vinfo);
         src_stride[1] = nstride;
         src_size[1] = src_stride[1] * nslice;
@@ -940,10 +917,6 @@ gst_omx_video_dec_fill_buffer (GstOMXVideoDec * self,
         src_size[1] = src_stride[1] * nslice;
         dst_height[1] = GST_VIDEO_INFO_FIELD_HEIGHT (vinfo);
         break;
-      case GST_VIDEO_FORMAT_GRAY10_LE:
-      case GST_VIDEO_FORMAT_GRAY12_LE:
-        dst_width[0] = GST_VIDEO_INFO_WIDTH (vinfo) * 2;
-        break;
       case GST_VIDEO_FORMAT_GRAY10_LE32:
         /* Need ((width + 2) / 3) 32-bits words */
         dst_width[0] = (GST_VIDEO_INFO_WIDTH (vinfo) + 2) / 3 * 4;
@@ -956,21 +929,7 @@ gst_omx_video_dec_fill_buffer (GstOMXVideoDec * self,
         dst_width[1] = GST_VIDEO_INFO_WIDTH (vinfo) * 2;
         dst_height[1] = GST_VIDEO_INFO_FIELD_HEIGHT (vinfo) / 2;
         break;
-      case GST_VIDEO_FORMAT_P210_10LE:
-      case GST_VIDEO_FORMAT_P212_12LE:
-        dst_width[0] = GST_VIDEO_INFO_WIDTH (vinfo) * 2;
-        src_stride[1] = nstride;
-        src_size[1] = src_stride[1] * nslice;
-        dst_width[1] = GST_VIDEO_INFO_WIDTH (vinfo) * 2;
-        dst_height[1] = GST_VIDEO_INFO_FIELD_HEIGHT (vinfo);
-        break;
       case GST_VIDEO_FORMAT_Y444:
-      case GST_VIDEO_FORMAT_T548:
-      case GST_VIDEO_FORMAT_T54A:
-      case GST_VIDEO_FORMAT_T54C:
-      case GST_VIDEO_FORMAT_T648:
-      case GST_VIDEO_FORMAT_T64A:
-      case GST_VIDEO_FORMAT_T64C:
         dst_width[0] = GST_VIDEO_INFO_WIDTH (vinfo);
         src_stride[1] = nstride;
         src_size[1] = src_stride[1] * nslice;
@@ -1646,6 +1605,7 @@ gst_omx_video_dec_get_output_interlace_info (GstOMXVideoDec * self)
   return GST_VIDEO_INTERLACE_MODE_PROGRESSIVE;
 }
 
+#if defined (HAVE_GST_GL)
 static void
 add_caps_memory_feature (GstCaps * caps, const gchar * feature)
 {
@@ -1670,6 +1630,7 @@ add_caps_memory_feature (GstCaps * caps, const gchar * feature)
   gst_caps_features_add (features, feature);
   gst_caps_set_features (caps, 0, features);
 }
+#endif
 
 static GstVideoCodecState *
 gst_omx_video_dec_set_output_state (GstOMXVideoDec * self, GstVideoFormat fmt)
@@ -1702,11 +1663,6 @@ gst_omx_video_dec_set_output_state (GstOMXVideoDec * self, GstVideoFormat fmt)
   state = gst_video_decoder_set_interlaced_output_state (GST_VIDEO_DECODER
       (self), fmt, interlace_mode,
       port_def.format.video.nFrameWidth, frame_height, self->input_state);
-
-  if (self->xlnx_ll) {
-    state->caps = gst_video_info_to_caps (&state->info);
-    add_caps_memory_feature (state->caps, GST_CAPS_FEATURE_MEMORY_XLNX_LL);
-  }
 
   return state;
 }
@@ -2733,52 +2689,6 @@ gst_omx_video_dec_negotiate (GstOMXVideoDec * self)
       self->input_state);
 
   comp_supported_caps = gst_omx_video_get_caps_for_map (negotiation_map);
-
-#if defined(USE_OMX_TARGET_ZYNQ_USCALE_PLUS) || defined(USE_OMX_TARGET_VERSAL) || defined(USE_OMX_TARGET_VERSAL_GEN2)
-  /* Do not activate the specific Xilinx Low Latency mode if subframes
-   * are not enabled and activate it only when the downstream element advertises
-   * the feature explicitely (Peer caps ANY is not supported). */
-  if (gst_video_decoder_get_subframe_mode (GST_VIDEO_DECODER (self))) {
-    GstCapsFeatures *features;
-    gboolean is_peer_any;
-    GstCaps *peer_caps;
-
-    peer_caps =
-        gst_pad_peer_query_caps (GST_VIDEO_DECODER_SRC_PAD (self), NULL);
-    is_peer_any = gst_caps_is_any (peer_caps);
-    gst_caps_unref (peer_caps);
-
-    features = gst_caps_get_features (intersection, 0);
-    if (!is_peer_any && features
-        && gst_caps_features_contains (features,
-            GST_CAPS_FEATURE_MEMORY_XLNX_LL)) {
-      OMX_ALG_PORT_PARAM_EARLY_CALLBACK param;
-      OMX_ERRORTYPE err;
-
-      GST_OMX_INIT_STRUCT (&param);
-      param.bEnableEarlyCallback = OMX_TRUE;
-      param.nPortIndex = self->dec_out_port->index;
-
-      GST_DEBUG_OBJECT (self, "Enable XLNX-LowLatency");
-
-      err =
-          gst_omx_component_set_parameter (self->dec,
-          (OMX_INDEXTYPE) OMX_ALG_IndexPortParamEarlyCallback, &param);
-      if (err != OMX_ErrorNone) {
-        GST_ERROR_OBJECT (self,
-            "Failed to set parameter: %s (0x%08x)",
-            gst_omx_error_to_string (err), err);
-        return FALSE;
-      }
-      self->xlnx_ll = TRUE;
-      /* Correct reported latency since syncip decoder give early callback */
-      gst_omx_video_dec_set_latency (self);
-    }
-  }
-
-  comp_supported_caps =
-      gst_omx_video_add_xlnx_ll_to_caps (comp_supported_caps, FALSE);
-#endif
 
   GST_DEBUG_OBJECT (self, "Decoder supported caps: %" GST_PTR_FORMAT,
       comp_supported_caps);
