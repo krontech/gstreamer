@@ -1,0 +1,103 @@
+/*
+ * Copyright 2014 Advanced Micro Devices, Inc.
+ *   Author: Christian König <christian.koenig@amd.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation
+ * version 2.1 of the License.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
+ *
+ */
+
+#ifndef __GST_OMX_VIDEO_H__
+#define __GST_OMX_VIDEO_H__
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include <gst/gst.h>
+#include <gst/video/video.h>
+#include <gst/video/gstvideodecoder.h>
+#include <gst/video/gstvideoencoder.h>
+
+#include "gstomx.h"
+
+G_BEGIN_DECLS
+
+/* Keep synced with gst_omx_video_get_format_from_omx(). Sort by decreasing quality */
+#if defined(USE_OMX_TARGET_ZYNQ_USCALE_PLUS) || defined(USE_OMX_TARGET_VERSAL)
+#define GST_OMX_VIDEO_DEC_SUPPORTED_FORMATS "{ NV16_10LE32, NV12_10LE32, " \
+"NV16, NV12, GRAY10_LE32, GRAY8, Y444, Y444_10LE32 }"
+
+#define GST_OMX_VIDEO_ENC_SUPPORTED_FORMATS "{ NV16_10LE32, NV12_10LE32, " \
+"NV16, NV12, GRAY10_LE32, GRAY8, Y444, Y444_10LE32 }"
+
+#elif defined(USE_OMX_TARGET_VERSAL_GEN2)
+#define GST_OMX_VIDEO_DEC_SUPPORTED_FORMATS "{ " \
+"Y444_12LE, Y444_10LE, Y444, P212_12LE, P210_10LE, NV16," \
+"P012_LE, P010_10LE, NV12, GRAY12_LE, GRAY10_LE, GRAY8, " \
+"T64C, T54C, T64A, T54A, T648, T548, T62C, T52C, T62A, T52A, T628, T528, " \
+"T60C, T50C, T60A, T50A, T608, T508, T6MC, T5MC, T6MA, T5MA, T6M8, T5M8 }"
+
+#define GST_OMX_VIDEO_ENC_SUPPORTED_FORMATS "{ " \
+"Y444_12LE, Y444_10LE, Y444, P212_12LE, P210_10LE, NV16," \
+"P012_LE, P010_10LE, NV12, GRAY12_LE, GRAY10_LE, GRAY8, " \
+"T64C, T54C, T64A, T54A, T648, T548, T62C, T52C, T62A, T52A, T628, T528, " \
+"T60C, T50C, T60A, T50A, T608, T508, T6MC, T5MC, T6MA, T5MA, T6M8, T5M8 }"
+
+#else
+#define GST_OMX_VIDEO_DEC_SUPPORTED_FORMATS "{ NV16_10LE32, NV12_10LE32, " \
+  "NV16, YUY2, YVYU, UYVY, NV12, I420, RGB16, BGR16, ABGR, ARGB, GRAY8 }"
+
+#define GST_OMX_VIDEO_ENC_SUPPORTED_FORMATS "{ NV16_10LE32, NV12_10LE32, " \
+  "NV16, NV12, I420, GRAY8 }"
+
+#endif
+
+typedef struct
+{
+  GstVideoFormat format;
+  OMX_COLOR_FORMATTYPE type;
+} GstOMXVideoNegotiationMap;
+
+GstVideoFormat
+gst_omx_video_get_format_from_omx (OMX_COLOR_FORMATTYPE omx_colorformat);
+
+GList *
+gst_omx_video_get_supported_colorformats (GstOMXPort * port,
+    GstVideoCodecState * state);
+
+GstCaps * gst_omx_video_get_caps_for_map(GList * map);
+
+void
+gst_omx_video_negotiation_map_free (GstOMXVideoNegotiationMap * m);
+
+GstVideoCodecFrame *
+gst_omx_video_find_nearest_frame (GstElement * element, GstOMXBuffer * buf, GList * frames);
+
+OMX_U32 gst_omx_video_calculate_framerate_q16 (GstVideoInfo * info);
+
+gboolean gst_omx_video_is_equal_framerate_q16 (OMX_U32 q16_a, OMX_U32 q16_b);
+
+gboolean gst_omx_video_get_port_padding (GstOMXPort * port, GstVideoInfo * info_orig,
+    GstVideoAlignment * align);
+
+#if defined(USE_OMX_TARGET_ZYNQ_USCALE_PLUS) || defined(USE_OMX_TARGET_VERSAL) || defined(USE_OMX_TARGET_VERSAL_GEN2)
+GstCaps * gst_omx_video_add_xlnx_ll_to_caps (GstCaps * caps, gboolean encoder);
+#endif
+gboolean gst_omx_video_port_support_resolution (GstOMXPort * port, guint width, guint height);
+
+
+G_END_DECLS
+
+#endif /* __GST_OMX_VIDEO_H__ */
