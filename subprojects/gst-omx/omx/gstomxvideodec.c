@@ -3859,11 +3859,8 @@ gst_omx_video_dec_handle_frame (GstVideoDecoder * decoder,
       if (!gst_omx_buffer_map_memory (buf, mem))
         goto map_failed;
 
-      if (!check_input_alignment (self, &buf->map)) {
-        GST_ELEMENT_ERROR (self, STREAM, FORMAT, (NULL),
-            ("input buffer now has wrong alignment/stride, can't use dynamic allocation any more"));
-        return FALSE;
-      }
+      if (!check_input_alignment (self, &buf->map))
+        goto alignment_changed;
 
       memory_idx++;
       if (memory_idx == gst_buffer_n_memory (frame->input_buffer))
@@ -3973,6 +3970,14 @@ map_failed:
     gst_video_codec_frame_unref (frame);
     GST_ELEMENT_ERROR (self, STREAM, FORMAT, (NULL),
         ("failed to map input buffer"));
+    return GST_FLOW_ERROR;
+  }
+
+alignment_changed:
+  {
+    gst_video_codec_frame_unref (frame);
+    GST_ELEMENT_ERROR (self, STREAM, FORMAT, (NULL),
+        ("input buffer now has wrong alignment/stride, can't use dynamic allocation any more"));
     return GST_FLOW_ERROR;
   }
 
