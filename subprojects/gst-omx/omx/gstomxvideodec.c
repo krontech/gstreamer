@@ -3556,17 +3556,14 @@ gst_omx_video_dec_set_format (GstVideoDecoder * decoder,
   return TRUE;
 }
 
-static gboolean
-gst_omx_video_dec_flush (GstVideoDecoder * decoder)
+/* Pause the components and set their ports flushing. This wakes up anything
+ * blocked in gst_omx_port_acquire_buffer(), in particular handle_frame()
+ * waiting for an input buffer and the loop waiting for an output buffer.
+ * Called both on FLUSH_START (so the streaming thread releases the sinkpad
+ * stream lock and FLUSH_STOP can be delivered) and from the flush vfunc. */
+static void
+gst_omx_video_dec_pause_and_flush_ports (GstOMXVideoDec * self)
 {
-  GstOMXVideoDec *self = GST_OMX_VIDEO_DEC (decoder);
-  OMX_ERRORTYPE err = OMX_ErrorNone;
-
-  GST_DEBUG_OBJECT (self, "Flushing decoder");
-
-  if (gst_omx_component_get_state (self->dec, 0) == OMX_StateLoaded)
-    return TRUE;
-
   /* 0) Pause the components */
   if (gst_omx_component_get_state (self->dec, 0) == OMX_StateExecuting) {
     gst_omx_component_set_state (self->dec, OMX_StatePause);
@@ -3592,6 +3589,22 @@ gst_omx_video_dec_flush (GstVideoDecoder * decoder)
     gst_omx_port_set_flushing (self->egl_out_port, 5 * GST_SECOND, TRUE);
   }
 #endif
+}
+
+static gboolean
+gst_omx_video_dec_flush (GstVideoDecoder * decoder)
+{
+  GstOMXVideoDec *self = GST_OMX_VIDEO_DEC (decoder);
+  OMX_ERRORTYPE err = OMX_ErrorNone;
+
+  GST_DEBUG_OBJECT (self, "Flushing decoder");
+
+  if (gst_omx_component_get_state (self->dec, 0) == OMX_StateLoaded)
+    return TRUE;
+
+  /* 0) + 1) Pause the components and flush the ports. Usually already done
+   * on FLUSH_START, in which case this is a no-op. */
+  gst_omx_video_dec_pause_and_flush_ports (self);
 
   /* 2) Wait until the srcpad loop is stopped,
    * unlock GST_VIDEO_DECODER_STREAM_LOCK to prevent deadlocks
@@ -4220,6 +4233,20 @@ gst_omx_video_dec_sink_event (GstVideoDecoder * decoder, GstEvent * event)
   GstOMXVideoDec *self = GST_OMX_VIDEO_DEC (decoder);
 
   switch (GST_EVENT_TYPE (event)) {
+    case GST_EVENT_FLUSH_START:
+      /* FLUSH_START is not serialized, so it arrives while the streaming
+       * thread may still be blocked in handle_frame() waiting for an input
+       * buffer, holding the sinkpad stream lock. The component won't return
+       * input buffers while the (now paused) loop isn't recycling output
+       * buffers, so FLUSH_STOP, which needs the stream lock, would never get
+       * through and ::flush() would never run. Set the ports flushing now so
+       * the blocked acquire returns FLUSHING and the stream lock is released.
+       * ::flush() completes the job on FLUSH_STOP. */
+      GST_DEBUG_OBJECT (self, "Flush start, unblocking ports");
+      if (gst_omx_component_get_state (self->dec, 0) != OMX_StateLoaded)
+        gst_omx_video_dec_pause_and_flush_ports (self);
+      break;
+
     case GST_EVENT_CUSTOM_DOWNSTREAM:
     {
       if (gst_event_has_name (event, "buffers-allocated")) {
@@ -4239,6 +4266,7 @@ gst_omx_video_dec_sink_event (GstVideoDecoder * decoder, GstEvent * event)
         gst_event_unref (event);
         return TRUE;
       }
+      break;
     }
 
     default:
