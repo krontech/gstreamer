@@ -1040,11 +1040,11 @@ gst_omx_try_importing_buffer (GstOMXVideoDec * self, GstBufferPool * pool,
     goto out;
   }
 
-  if (GST_VIDEO_FRAME_SIZE (*frame) < port->port_def.nBufferSize) {
+  if (mem->size < port->port_def.nBufferSize) {
     GST_INFO_OBJECT (self,
-        "Frame size of %d-th buffer (%" G_GSIZE_FORMAT
+        "Memory size of %d-th buffer (%" G_GSIZE_FORMAT
         ") is too small for port buffer size (%d)", i,
-        GST_VIDEO_FRAME_SIZE (*frame), (guint32) port->port_def.nBufferSize);
+        mem->size, (guint32) port->port_def.nBufferSize);
     goto out;
   }
 
