@@ -330,75 +330,65 @@ gst_omx_buffer_pool_alloc_buffer (GstBufferPool * bpool,
     foreign_mem = gst_buffer_get_memory (buf, 0);
     gst_buffer_remove_all_memory (buf);
 
-    if (pool->add_videometa) {
-      GstVideoMeta *meta;
-
-      meta = gst_buffer_get_video_meta (buf);
-      if (!meta) {
-        gst_buffer_add_video_meta (buf, GST_VIDEO_FRAME_FLAG_NONE,
-            GST_VIDEO_INFO_FORMAT (&pool->video_info),
-            GST_VIDEO_INFO_WIDTH (&pool->video_info),
-            GST_VIDEO_INFO_HEIGHT (&pool->video_info));
-      }
-    }
-
     pool->need_copy = FALSE;
   } else {
     buf = gst_buffer_new ();
+  }
 
-    if (GST_VIDEO_INFO_FORMAT (&pool->video_info) != GST_VIDEO_FORMAT_ENCODED) {
-      const guint nstride = pool->port->port_def.format.video.nStride;
-      const guint nslice = pool->port->port_def.format.video.nSliceHeight;
-      const guint nheight = pool->port->port_def.format.video.nFrameHeight;
-      gsize offset[GST_VIDEO_MAX_PLANES] = { 0, };
-      gint stride[GST_VIDEO_MAX_PLANES] = { nstride, 0, };
+  if (GST_VIDEO_INFO_FORMAT (&pool->video_info) != GST_VIDEO_FORMAT_ENCODED) {
+    const guint nstride = pool->port->port_def.format.video.nStride;
+    const guint nslice = pool->port->port_def.format.video.nSliceHeight;
+    const guint nheight = pool->port->port_def.format.video.nFrameHeight;
+    gsize offset[GST_VIDEO_MAX_PLANES] = { 0, };
+    gint stride[GST_VIDEO_MAX_PLANES] = { nstride, 0, };
 
-      switch (GST_VIDEO_INFO_FORMAT (&pool->video_info)) {
-        case GST_VIDEO_FORMAT_ABGR:
-        case GST_VIDEO_FORMAT_ARGB:
-        case GST_VIDEO_FORMAT_RGB16:
-        case GST_VIDEO_FORMAT_BGR16:
-        case GST_VIDEO_FORMAT_YUY2:
-        case GST_VIDEO_FORMAT_UYVY:
-        case GST_VIDEO_FORMAT_YVYU:
-        case GST_VIDEO_FORMAT_GRAY8:
-        case GST_VIDEO_FORMAT_GRAY10_LE32:
-          break;
-        case GST_VIDEO_FORMAT_Y444:
+    switch (GST_VIDEO_INFO_FORMAT (&pool->video_info)) {
+      case GST_VIDEO_FORMAT_ABGR:
+      case GST_VIDEO_FORMAT_ARGB:
+      case GST_VIDEO_FORMAT_RGB16:
+      case GST_VIDEO_FORMAT_BGR16:
+      case GST_VIDEO_FORMAT_YUY2:
+      case GST_VIDEO_FORMAT_UYVY:
+      case GST_VIDEO_FORMAT_YVYU:
+      case GST_VIDEO_FORMAT_GRAY8:
+      case GST_VIDEO_FORMAT_GRAY10_LE32:
+        break;
+      case GST_VIDEO_FORMAT_Y444:
 #if defined(USE_OMX_TARGET_VERSAL_GEN2)
-        case GST_VIDEO_FORMAT_Y444_10LE:
-        case GST_VIDEO_FORMAT_Y444_12LE:
-          stride[1] = nstride;
-          offset[1] = offset[0] + stride[0] * nslice;
-          stride[2] = nstride;
-          offset[2] = offset[1] + stride[1] * nslice;
+      case GST_VIDEO_FORMAT_Y444_10LE:
+      case GST_VIDEO_FORMAT_Y444_12LE:
+        stride[1] = nstride;
+        offset[1] = offset[0] + stride[0] * nslice;
+        stride[2] = nstride;
+        offset[2] = offset[1] + stride[1] * nslice;
 #else
-          stride[1] = nstride;
-          offset[1] = offset[0] + (stride[0] * nheight / 3);
-          stride[2] = nstride;
-          offset[2] = offset[1] + (stride[1] * nheight / 3);
+        stride[1] = nstride;
+        offset[1] = offset[0] + (stride[0] * nheight / 3);
+        stride[2] = nstride;
+        offset[2] = offset[1] + (stride[1] * nheight / 3);
 #endif
-          break;
-        case GST_VIDEO_FORMAT_I420:
-          stride[1] = nstride / 2;
-          offset[1] = offset[0] + stride[0] * nslice;
-          stride[2] = nstride / 2;
-          offset[2] = offset[1] + (stride[1] * nslice / 2);
-          break;
-        case GST_VIDEO_FORMAT_NV12:
-        case GST_VIDEO_FORMAT_NV12_10LE32:
-        case GST_VIDEO_FORMAT_NV16:
-        case GST_VIDEO_FORMAT_NV16_10LE32:
-        case GST_VIDEO_FORMAT_P010_10LE:
-        case GST_VIDEO_FORMAT_P012_LE:
-          stride[1] = nstride;
-          offset[1] = offset[0] + stride[0] * nslice;
-          break;
-        default:
-          g_assert_not_reached ();
-          break;
-      }
+        break;
+      case GST_VIDEO_FORMAT_I420:
+        stride[1] = nstride / 2;
+        offset[1] = offset[0] + stride[0] * nslice;
+        stride[2] = nstride / 2;
+        offset[2] = offset[1] + (stride[1] * nslice / 2);
+        break;
+      case GST_VIDEO_FORMAT_NV12:
+      case GST_VIDEO_FORMAT_NV12_10LE32:
+      case GST_VIDEO_FORMAT_NV16:
+      case GST_VIDEO_FORMAT_NV16_10LE32:
+      case GST_VIDEO_FORMAT_P010_10LE:
+      case GST_VIDEO_FORMAT_P012_LE:
+        stride[1] = nstride;
+        offset[1] = offset[0] + stride[0] * nslice;
+        break;
+      default:
+        g_assert_not_reached ();
+        break;
+    }
 
+    if (!pool->other_pool) {
       if (pool->add_videometa) {
         pool->need_copy = FALSE;
       } else {
@@ -428,24 +418,24 @@ gst_omx_buffer_pool_alloc_buffer (GstBufferPool * bpool,
 
         pool->need_copy = need_copy;
       }
+    }
 
-      if (pool->need_copy || pool->add_videometa) {
-        /* We always add the videometa. It's the job of the user
-         * to copy the buffer if pool->need_copy is TRUE
-         */
-        GstVideoMeta *meta;
-        GstVideoAlignment align;
+    if (pool->need_copy || pool->add_videometa) {
+      /* We always add the videometa. It's the job of the user
+       * to copy the buffer if pool->need_copy is TRUE
+       */
+      GstVideoMeta *meta;
+      GstVideoAlignment align;
 
-        meta = gst_buffer_add_video_meta_full (buf, GST_VIDEO_FRAME_FLAG_NONE,
-            GST_VIDEO_INFO_FORMAT (&pool->video_info),
-            GST_VIDEO_INFO_WIDTH (&pool->video_info),
-            GST_VIDEO_INFO_HEIGHT (&pool->video_info),
-            GST_VIDEO_INFO_N_PLANES (&pool->video_info), offset, stride);
+      meta = gst_buffer_add_video_meta_full (buf, GST_VIDEO_FRAME_FLAG_NONE,
+          GST_VIDEO_INFO_FORMAT (&pool->video_info),
+          GST_VIDEO_INFO_WIDTH (&pool->video_info),
+          GST_VIDEO_INFO_HEIGHT (&pool->video_info),
+          GST_VIDEO_INFO_N_PLANES (&pool->video_info), offset, stride);
 
-        if (gst_omx_video_get_port_padding (pool->port, &pool->video_info,
-                &align))
-          gst_video_meta_set_alignment (meta, align);
-      }
+      if (gst_omx_video_get_port_padding (pool->port, &pool->video_info,
+              &align))
+        gst_video_meta_set_alignment (meta, align);
     }
   }
 
