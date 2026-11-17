@@ -2578,6 +2578,14 @@ gst_omx_port_release_buffer (GstOMXPort * port, GstOMXBuffer * buf)
     GST_DEBUG_OBJECT (comp->parent,
         "%s port %u is flushing or disabled, not releasing " "buffer",
         comp->name, port->index);
+
+    /* Make sure input buffers that we re-use are unmapped before adding them
+     * back to the queue. */
+    if (port->port_def.eDir == OMX_DirInput && port->flushing) {
+      gst_omx_buffer_reset(buf);
+      gst_omx_buffer_unmap(buf);
+    }
+
     g_queue_push_tail (&port->pending_buffers, buf);
     gst_omx_component_send_message (comp, NULL);
     goto done;
